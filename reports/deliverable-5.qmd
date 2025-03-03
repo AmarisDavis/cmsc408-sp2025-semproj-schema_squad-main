@@ -1,0 +1,410 @@
+---
+title: Design Document - Deliverable 5
+
+## Useful references:
+# - Basic Markdown: https://quarto.org/docs/authoring/markdown-basics.html
+# - Quarto figures: https://quarto.org/docs/authoring/figures.html
+# - HTML document basics: https://quarto.org/docs/output-formats/html-basics.html
+# - Quarto guide: https://quarto.org/docs/guide/
+# - VS Code and Quarto: https://quarto.org/docs/tools/vscode.html
+#   (RTFM and GET THE EXTENSION!!!!)
+---
+
+<!--
+GUIDANCE:
+- DO NOT CHANGE the section labels or levels.  The autograder will be looking for these to match.
+- The autograder WILL be looking for snippets of my text and taking off points if it finds anything that I provide, 
+except for section labels and levels.
+- Add your text to each section, then DELETE mine.  
+- Use your own words, and NOT those of ChatGPT!
+- THINK about what you put in each section.
+-->
+
+**Media/Show Reviewing application**
+
+* Social media application where we allow users to review anime episodes  
+* User’s create an account with an email, password, and username  
+* A page where users can select a show and an episode, give it a rating, and writing a review for the episode that is shared on a page where users can view other reviews of that episode  
+* Currently thinking of a Node.js backend  
+* Still coming to a decision on frontend  
+* Deciding on whether or not we will take an existing api for anime’s
+
+
+
+* [[Link to repository](https://github.com/cmsc-vcu/cmsc408-sp2025-semproj-template)]
+* [[Direct link to video pitch]()]
+* [[Direct link to design video]()]
+
+# Design Video
+
+*The video will be uploaded to the github soon. Currently all memebers are not avaliable to record a video.
+
+# Problem Description
+
+## Problem domain
+
+We are working on creating a media review site focusing on shows, giving people the ability to review, discuss, and track the shows they are currently watching. 
+
+## Need
+
+This project will give users the ability to find like minded people without the need to use 3rd party sites/disucussion board like reddit or instagram
+
+## Context, scope and perspective
+
+This database will be for the watchers of different japanese animation shows,
+
+## User roles and use cases
+
+The database will be mostly be used for just the show watcher who will use it to discuss, rate, and track the shows they will be used. They will be able to write the reviews and understand a little more about the possible shows they will be watching. This database will be connected to the hundreds of anime shows that are currently on the internet.
+
+## Security and Privacy
+
+The main parts of security that will need to be used are JWT tokens and authentication, moderator validation for reviewing the site and ensure guidelines are stable, password salting and protection, and email/account validation to ensure there are bots
+
+### Authentication and Access Control
+
+- User-Authenthication Mechanisims:  Users will log in with a username and password combination. The data will be stored safely with encryption and hasing
+- Session Handling: User's sessions will be using secure, HTTP-only cookies with  a short-lived access token and a long-lived refresh token.
+- Tokens will use JWT (JSON Web Tokens) with expiration times to prevent session hijacking.
+- Account Lockout: After 5 failed login attempts, the account will be temporarily locked for 15 minutes.
+
+### Data Protection and Encryption
+
+The Media Review Application will use AES-256 encryption to secure data at rest and TLS/SSL for encrypted data transmission. PII, including passwords, will be hashed and salted using bcrypt to prevent unauthorized access. Regular encrypted backups with restricted access will be implemented to ensure data integrity and prevent data loss.
+
+## Ethical and Professional Responsibilities
+
+- Our Media Review Application will prioritize user privacy, security, and ethical content management by encrypting data, implementing access control, and basic content moderation. 
+- Users will have control over their data with secure authenthication methods
+
+### Data Ethics
+
+We will have to make ethical decisions when it comes not only to obtaining user emails and a possible password, as we will have account information that if the security of the site is compromised, could cost users emails and accounts to be compromised. We will need to only use the user information given for only the site itself. We also need to ensure that we aren’t breaching any guidelines when finding a source for the list of shows that can be used for users to actually create reviews.
+
+
+### Bias and Fairness
+
+We have to be fair and ensure that the database is useable and has options for language barriers and has the possibility of needing accessibility help for people with disabilities
+
+### Data Ownership and Consent
+
+We will have access to emails and need to create a secure database to ensure that the user information isn’t easily accessible. We also need to ensure we are only doing queries on the user’s information for only their designed purpose of validating login.
+
+### Accountability and Transparency
+
+We will need to inform users what their cookies are being used for keeping their information while they are logged in, and ensure we create a site guidelines document so they know what is and isn’t allowed to be said on the site. We need to also ensure that users can contact if their is account information and have the ability to completely remove their account from the database so they are stuck with us having that data. 
+
+### Legal and Compliance Issues
+
+The main legal issues that will be discussed is knowing that the shows are owned by people so we need to ethically source a list of the shows prior to uploading them as apart of the applications database. Also knowing that we will be having access to their email addresses means we have to keep that information secure or we could face legal action for losing their account information to other sources
+
+# Database Design
+
+## Entity-relationship diagrams
+``` {dot}
+graph MediaReviewApplication {
+    fontname="Helvetica,Arial,sans-serif"
+    fontsize=8;  // Reduced font size for the entire graph
+    node [fontname="Helvetica,Arial,sans-serif", fontsize=8, width=0.5, height=0.3, style=filled, fillcolor=white] // Default: smaller font size, reduced node size, shaded
+    edge [fontname="Helvetica,Arial,sans-serif", fontsize=8] // Reduced font size for edges
+    layout=neato
+    nodesep=2.0;  // Increased separation between nodes on the same level
+    ranksep=1.5;  // Increased separation between nodes on different levels
+    size="6,6";   // Specify desired size in inches
+    ratio=compress; // Allow Graphviz to compress the layout to fit the size
+    dpi=60;  // Set DPI for higher resolution output
+    center=false;
+    
+    //The Entities 
+    node[shape = box; style = filled, color = black] 
+    Users; Shows; Episodes; Ratings; Watchlist; 
+    
+    //The Attributes 
+    node[shape= ellipse, style = filled, color = black]
+    //for User 
+    user_id; username; email; password; join_date;
+    //for Shows 
+    show_id; title; genre; release_year; total_seasons; average_rating;
+    //for Episodes 
+    episode_id; {node[label = "show_id"] ep_showID;} season_number; episode_number; {node[label = "title"] ep_title;} air_date;
+    //for Ratings 
+    rating_id; {node[label = "user_id"] rating_userID;} {node[label = "show_id"] rating_showID;} rating; review_text; date_rated; 
+    //for Watchlist 
+    watchlist_id; {node[label = "user_id"] watchlist_userID;} {node[label = "show_id"] watchlist_showID;} status; 
+    
+    
+    //pairing the attributes  
+    Users -- user_id;
+    Users -- username;
+    Users -- email;
+    Users -- password;
+    Users -- join_date;
+    
+    Shows -- show_id;
+    Shows -- title;
+    Shows -- genre;
+    Shows -- release_year;
+    Shows -- total_seasons;
+    Shows -- average_rating;
+    
+    Episodes -- episode_id;
+    Episodes -- ep_showID;
+    Episodes -- season_number;
+    Episodes -- episode_number;
+    Episodes -- ep_title;
+    Episodes -- air_date;
+    
+    Ratings -- rating_id;
+    Ratings -- rating_userID;
+    Ratings -- rating_showID; 
+    Ratings -- rating;
+    Ratings -- review_text;
+    Ratings -- date_rated;
+    
+    Watchlist -- watchlist_id;
+    Watchlist -- watchlist_userID;
+    Watchlist -- watchlist_showID;
+    Watchlist -- status; 
+    
+    
+    //Relationships 
+    node [shape=diamond, style=filled, color=black, fillcolor=white width=0.3, height=0.2, fontsize=6,] 
+   {node [label = "has"] has;}  {node [label = "makes"] makes;}  {node [label = "contains"] contains1; contains2;} writes;
+   
+   Users -- writes;
+   writes -- Ratings;
+   Users -- makes;
+   makes-- Watchlist;
+   
+   Shows -- contains1;
+   contains1 -- Episodes;
+   Shows -- has;
+   has -- Ratings;
+   
+   Watchlist -- contains2;
+   contains2 -- Shows;
+ 
+}
+```
+
+## Relational schemas
+- Users:
+- user_id (Primary Key) (Unique identifier for each user) 
+- username (User’s chosen display name, must be unique)
+- email (Unique email address for each user)
+- password (Encrypted password for authentication)
+- join_date (Date when the user registered)
+
+- Constraints: 
+- PK: user_id (Each user has a unique ID)
+- email is unique
+- join_date cannot be null
+
+ 2. Shows
+- show_id (Primary Key) (Unique identifier for each show)
+- title (Name of the show)
+- genre (Category of the show, e.g., drama, comedy)
+- release_year (Year the show premiered)
+- total_seasons (Total number of seasons, must be at least 1)
+- average_rating (Average user rating for the show)
+
+- Constraints:
+- PK: show_id (Each show has a unique ID)
+- total_seasons must be at least 1
+- average_rating defaults to 0.0
+
+3. Episodes
+- episode_id (Primary Key) (Unique identifier for each show)
+- show_id (Foreign Key → Shows) (Show to which the episode belongs)
+- season_number (Season in which the episode appears)
+- episode_number (Episode’s position within the season)
+- title (Title of the episode)
+- air_date (Date the episode was released)
+
+- Constraints:
+- PK: episode_id (Unique episode identifier)
+- FK: show_id references Shows(show_id) (Each episode belongs to a show)
+- season_number & episode_number must be positive integers
+
+
+4. Ratings
+- rating_id (Primary Key) (Unique identifier for each rating)
+- user_id (Foreign Key → Users) (User who gave the rating)
+- Show_id (Foreign Key → Shows) (Show being rated)
+- rating (Numeric rating between 0.0 and 10.0)
+- review_text (Optional text review)
+- date_rated (Date when the review was given)
+
+- Constraints:
+- PK: rating_id (Unique rating identifier)
+- FKs: user_id references Users(user_id), show_id references Shows(show_id)
+- Rating must be between 0.0 and 10.0
+
+
+5. Watchlist:
+- watchlist_id (Primary Key) (Unique identifier for each watchlist)
+- user_id (Foreign Key → Users) (User who made the watchlist)
+- show_id (Foreign Key → Shows) (Show added to watchlist)
+- status ("Watching", "Completed", "Planned", "Dropped") 
+
+- Constraints:
+- PK: watchlist_id(Unique watchlist entry)
+- FKs: user_id references Users(user_id), show_id references Shows(show_id)
+- Status must be one of the predefined options
+
+- **Relationships**
+- Users - Ratings 1:M (one user can leave many ratings on different shows)
+- Shows - Ratings 1:M (a show can conatin multiple ratings)
+- Users - Watchlist 1:M (a user can create many different types of watchlists)
+- Shows - Watchlist 1:M (a show can be in multiple watchlists)
+- Shows - Episodes 1:M (a show can contain multiple episodes)
+- Users - Shows M:M (multiple users can watch multiple shows and rate multiple shows. resolved with ratings/watchlist.)
+
+## Functional Dependencies and Normalization
+
+- **Identifying Functional Dependencies**
+- Users Table: user_id → username, email, password, join_date(user_id determines everything) email → user_id(Emails are unique)
+- Shows Table: show_id→ Title, genre, release_year, total_seasons, average_rating
+- Episodes Table: episode_id  →show_id, season_number, episode_number, title, air_date (show_id, season_number, episode_number) →episode_id, title, air_date
+- Ratings Table: rating_id →user_id,show_id, rating, review_text, date_rated (user_id,show_id) →rating_id , rating, review_text, date_rated (Users can review a show once)
+- Watchlist Table: watchlist_id→user_id,show_id, status (user_id,show_id) →watchlist_id, status (A user can only have one watchlist entry per show)
+
+- **Normalization**
+- *summarry of normalization will be added shortly*
+
+## Specific queries
+
+1. Retrieve all users who joined after January 1, 2024: σ_{join_date > '2024-01-01'} (Users)
+2. Find all shows that belong to the 'Action' genre: σ_{genre = 'Action'} (Shows)
+3. Get the highest-rated show: π_{title, max(average_rating)} (Shows)
+4. Find all episodes for a given show (e.g., 'Attack on Titan'): π_{title, season_number, episode_number, air_date} (σ_{show_id = (π_{show_id} (σ_{title = 'Attack on Titan'} (Shows)))} (Episodes))
+5. Find all reviews written by a specific user: π_{username, title, rating, review_text} (Users ⨝ Ratings ⨝ Shows)
+6. List all users who rated a specific show higher than 8: π_{username} (Users ⨝ (σ_{rating > 8} (Ratings ⨝ Shows)))
+7. Find the number of ratings each show has received: π_{title, count(rating_id)} (Shows ⨝ Ratings)
+8. List shows in descending order based on their average rating: π_{title, average_rating} (Shows) ORDER BY average_rating DESC
+9. Find users who have added a specific show to their watchlist: π_{username} (Users ⨝ (σ_{show_id = (π_{show_id} (σ_{title = 'One Piece'} (Shows)))} (Watchlist)))
+10. Count how many users have 'Completed' a particular show: π_{title, count(user_id)} (σ_{status = 'Completed'} (Watchlist ⨝ Shows))
+11. Find users who have rated more than 10 shows: π_{username} (Users ⨝ (σ_{count(show_id) > 10} (Ratings)))
+12. List all shows with at least 3 seasons: σ_{total_seasons >= 3} (Shows)
+13. Find users who have rated a show but have not added it to their watchlist: π_{username} ((Users ⨝ Ratings) - (Users ⨝ Watchlist))
+14. Find the top 5 most-reviewed shows: π_{title, count(rating_id)} (Shows ⨝ Ratings) ORDER BY count(rating_id) DESC LIMIT 5
+15. Find the average rating given by a specific user: π_{username, avg(rating)} (Users ⨝ Ratings)
+16. Find all users who registered before a specific date and have rated at least 5 shows: π_{username} (σ_{join_date < '2023-01-01'} (Users) ⨝ (σ_{count(show_id) >= 5} (Ratings)))
+17. List all users who have never written a review: π_{username} (Users - π_{username} (Users ⨝ Ratings))
+18. Find shows that have at least 10 reviews but an average rating below 5.0: π_{title} (σ_{count(rating_id) >= 10 ∧ average_rating < 5.0} (Shows ⨝ Ratings))
+19. Find all episodes of a show that aired in 2023: π_{title, season_number, episode_number, air_date} (σ_{air_date >= '2023-01-01' ∧ air_date <= '2023-12-31'} (Episodes ⨝ Shows))
+20. Find users who have both reviewed and added a show to their watchlist: π_{username} ((Users ⨝ Ratings) ∩ (Users ⨝ Watchlist))
+
+
+## Sample Data
+
+
+### Student table
+
+
+### User Table 
+
+| user_id | username   | email               | password        | join_date  |
+|---------|-----------|---------------------|----------------|------------|
+| 1       | animeFanX | afanx@email.com      | hashed_pwd_123 | 2023-05-14 |
+| 2       | otakuKing | otaku@email.com      | hashed_pwd_456 | 2023-07-21 |
+| 3       | narutoFan | naruto@email.com     | hashed_pwd_789 | 2024-01-10 |
+| 4       | kDramaLvr | kdramalvr@email.com  | hashed_pwd_321 | 2024-02-01 |
+| 5       | chibiChan | chibi@email.com      | hashed_pwd_654 | 2024-02-10 |
+
+### Shows Table 
+| show_id | title           | genre         | release_year | total_seasons | average_rating |
+|---------|----------------|--------------|--------------|---------------|----------------|
+| 101     | Attack on Titan | Action       | 2013         | 4             | 9.2            |
+| 102     | One Piece       | Adventure    | 1999         | 20            | 8.8            |
+| 103     | Naruto          | Action       | 2002         | 9             | 8.4            |
+| 104     | Death Note      | Thriller     | 2006         | 1             | 9.0            |
+| 105     | My Hero Academia | Superhero   | 2016         | 7             | 8.0            |
+
+### Episodes Table 
+
+| episode_id | show_id | season_number | episode_number | title                        | air_date   |
+|------------|--------|--------------|---------------|-----------------------------|------------|
+| 1001       | 101    | 1            | 1             | "To You, 2000 Years Later"  | 2013-04-07 |
+| 1002       | 101    | 1            | 2             | "That Day"                  | 2013-04-14 |
+| 1003       | 102    | 1            | 1             | "I'm Luffy! The Man Who..." | 1999-10-20 |
+| 1004       | 103    | 1            | 1             | "Enter Naruto Uzumaki!"     | 2002-10-03 |
+| 1005       | 104    | 1            | 1             | "Rebirth"                   | 2006-10-04 |
+
+### Ratings Table 
+
+| rating_id | user_id | show_id | rating | review_text                                  | date_rated  |
+|-----------|--------|--------|--------|----------------------------------------------|------------|
+| 2001      | 1      | 101    | 10     | "A masterpiece, one of the best animes!"    | 2024-02-15 |
+| 2002      | 2      | 102    | 9      | "The adventure never ends, I love it!"      | 2024-02-16 |
+| 2003      | 3      | 103    | 8      | "Great fights and characters."              | 2024-02-17 |
+| 2004      | 4      | 104    | 9      | "Mind-blowing thriller, must-watch!"        | 2024-02-18 |
+| 2005      | 5      | 105    | 7      | "Good, but some arcs are slow."             | 2024-02-19 |
+
+
+### Watchlist table
+
+| watchlist_id | user_id | show_id | status  |
+|-------------|--------|--------|-----------|
+| 3001        | 1      | 101    | Watching  |
+| 3002        | 2      | 102    | Completed |
+| 3003        | 3      | 103    | Watching  |
+| 3004        | 4      | 104    | Planned   |
+| 3005        | 5      | 105    | Dropped   |
+
+
+
+## Project Management
+``` {mermaid}
+gantt
+    title Media Review Application - Project Schedule
+    dateFormat  YYYY-MM-DD
+    section Research & Planning
+    Finalize ERD and relational schema        :done, 2024-03-02, 2024-03-05
+    Define functional dependencies & normalization :done, 2024-03-03, 2024-03-08
+    Review ethical considerations              :2024-03-05, 2024-03-10
+
+    section Database Development
+    Implement database schema                  :2024-03-10, 2024-03-20
+    Set up authentication & access control     :2024-03-21, 2024-03-27
+    Implement encryption & security features   :2024-03-28, 2024-04-05
+
+    section Application Development
+    Develop user interface                     :2024-03-15, 2024-04-10
+    Integrate database with front-end          :2024-04-01, 2024-04-15
+    Implement review submission & display      :2024-04-05, 2024-04-18
+    Testing & debugging                        :2024-04-10, 2024-04-22
+
+    section Documentation & Submission
+    Write final project report                 :2024-04-15, 2024-04-25
+    Review & refine project                    :2024-04-20, 2024-04-27
+    Submit final project                       :milestone, 2024-04-29
+``` 
+
+# Reflection
+
+
+What did you like the most about this project?
+: I enjoyed making the graph for this project.
+
+What was most difficult about this project?
+: Since I got a new PC. It was basically reinstalling everything on to VSCode again.
+
+What additional tips or tricks could I provide to make this assignment easier to accomplish?
+: More documentation on quarto. Maybe on canvas provide a pdf of certain tips and tricks people can do with a screenshot example.
+
+
+# README
+
+A quality README is an important part of EVERY project. Using the Quarto *include* command we're including a copy of your README in the project report so that a human can evaluate it.
+
+Make sure that you edit the README so that it's explanatory!  Note that you don't need a readme within the *reports* folder for this assignment. We're only
+focused on the root *README.md*.
+
+[Here is some info](https://www.freecodecamp.org/news/how-to-write-a-good-readme-file/) on how to write a good README!
+
+::: {style="background:lightgray; margin-left:20px; border-top: 3px solid black; border-bottom: 3px solid black; padding-left:20px; padding-right:20px"}
+{{< include ../README.md >}}
+:::
+
+
